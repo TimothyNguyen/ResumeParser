@@ -101,7 +101,7 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: ${{ secrets.EB_APP_NAME }}
           environment_name: ${{ secrets.EB_ENV_NAME }}
-          version_label: "buddha-${{ steps.current-time.outputs.time }}"
+          version_label: "buddha-resume-${{ steps.current-time.outputs.time }}"
           region: ${{ secrets.EB_REGION }}
           # deployment_package: docker-compose.yml
           # deployment_package: compose.zip
