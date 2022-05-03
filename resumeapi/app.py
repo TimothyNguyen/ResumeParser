@@ -677,6 +677,9 @@ def parseResume():
     # logging.info(resume_text)
     # return resume_text
     
+@app.route('/', methods=['GET'])
+def hi():
+    return jsonify("Hello World")
 
 if __name__ == '__main__':
     #define the localhost ip and the port that is going to be used
