@@ -34,7 +34,7 @@ from job_titles.src.find_job_titles import FinderAcora
 from werkzeug.utils import secure_filename
 import json
 import logging
-import fitz
+import fitz#c
 import boto3
 import uuid
 from urllib.request import Request, urlopen
@@ -43,10 +43,14 @@ from skillNer.general_params import SKILL_DB
 # import skill extractor
 from skillNer.skill_extractor_class import SkillExtractor
 from spacy.matcher import PhraseMatcher
+from flask_cors import CORS, cross_origin
 
 load_dotenv()
 
 app = Flask(__name__)
+
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # load pre-trained model
 nlp = spacy.load('en_core_web_sm')
@@ -610,6 +614,7 @@ def extract_work_experience(entities):
 ALLOWED_EXTENSIONS = set(['pdf'])
 
 @app.route('/resumeapi', methods=['GET'])
+@cross_origin()
 def hello():
     return 'Hello World'
 
@@ -625,6 +630,7 @@ def upload_file(resume):
 
 #we define the route
 @app.route('/resumeapi/parse_resume', methods=['POST'])
+@cross_origin()
 def parseResume():
     # return a json
     logging.info(request.files)
