@@ -1,0 +1,108 @@
+# name: Run Resumeble and deploy on heroku #set whatevername you want to your github job
+# on: 
+#  push:
+#   branches:
+#     - master
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v2
+#       - name: Build, Push and Deploy to Heroku #set the whatever name you want to this step
+#         id: heroku
+#         uses: snithyanantham/docker-compose-multiple-apps-heroku-deploy@v1.0  # use the latest version of the action
+#         with:
+#           email: ${{ secrets.HEROKU_EMAIL }} # your heroku email
+#           api_key: ${{ secrets.HEROKU_API_KEY }} # your  heroku api key
+#           docker_compose_file: './docker-compose.yml' # set the path to the folder where the docker-compose file is located
+#           heroku_apps: '[{"imagename":"buddha-client","appname":"buddha-client","apptype":"web"},{"imagename":"buddha-auth","appname":"buddha-auth","apptype":"web"},{"imagename":"buddha-nginx","appname":"buddha-nginx","apptype":"worker"}]' # List of Docker Image name, Heroku app and Heroku app type
+# THIS IS WHAT MY GITHUB ACTION LOOKS LIKE ATM
+name: Push images to Dockerhub and deploy on Elastic Beanstalk
+on: 
+ push:
+  branches:
+    - master
+
+jobs:
+  build_docker_images:
+    name: build docker images
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: checkout
+        uses: actions/checkout@master
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: runner.os−buildx−{{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          logout: true
+
+      - name: Build resumeapi image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./resumeapi
+          file: ./resumeapi/Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/resumeapi:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Build nginx image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./nginx2
+          file: ./nginx2/Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/nginx2:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+        # Finish building and deploying to dockerhub
+      - name: Get timestamp
+        uses: gerred/actions/current-time@master
+        id: current-time
+      - name: Run string replace
+        uses: frabert/replace-string-action@master
+        id: format-time
+        with:
+          pattern: '[:\.]+'
+          string: "${{ steps.current-time.outputs.time }}"
+          replace-with: '-'
+          flags: 'g'
+      
+      # - name: Zip docker-compose file for sending to Beanstalk
+      #   run: zip compose.zip docker-compose.yml
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v16
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: ${{ secrets.EB_APP_NAME }}
+          environment_name: ${{ secrets.EB_ENV_NAME }}
+          version_label: "buddha-${{ steps.current-time.outputs.time }}"
+          region: ${{ secrets.EB_REGION }}
+          # deployment_package: docker-compose.yml
+          # deployment_package: compose.zip
+          deployment_package: deploy.zip

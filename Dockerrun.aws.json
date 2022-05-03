@@ -1,0 +1,40 @@
+{
+    "AWSEBDockerrunVersion": "3",
+    "containerDefinitions": [
+        {
+            "name": "nginx2",
+            "image": "timothynguyen/nginx2",
+            "hostname": "nginx2",
+            "essential": true,
+            "portMappings": [
+                {
+                    "hostPort": 80,
+                    "containerPort": 80
+                }
+            ],
+            "links": [
+                "resumeapi"
+            ],
+            "memory": 500
+        },
+        {
+            "name": "resumeapi",
+            "image": "timothynguyen/resumeapi:latest",
+            "hostname": "resumeapi",
+            "environmentFiles": [
+                {
+                    "value": "arn:aws:s3://elasticbeanstalk-us-east-1-555323530622/.env",
+                    "type": "s3"
+                }
+            ],
+            "portMappings": [
+                {
+                    "hostPort": 5001,
+                    "containerPort": 5001
+                }
+            ],
+            "essential": false,
+            "memory": 1000
+        }
+    ]
+}

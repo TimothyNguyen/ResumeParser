@@ -1,0 +1,32 @@
+# VS Code config
+.vscode/
+
+# Python cache files
+**/**.pyc
+
+#Python virtual environment
+**/resumeapi/resumeapi
+**/resume_score/resume_score
+
+# Node modules
+node_modules
+client/node_modules
+
+# Lock files
+# package-lock.json
+*.lock
+
+# Log files
+*.log
+
+.idea
+
+# Config files
+# config/*.env
+# filemanager/config/*.env
+# resume_parser/config/*.env
+config/*.json
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

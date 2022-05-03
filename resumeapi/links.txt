@@ -1,0 +1,2 @@
+https://stackoverflow.com/questions/64558512/how-to-send-one-or-more-files-to-an-api-using-axios-in-react-js
+https://dev.to/alissonzampietro/the-amazing-journey-of-docker-compose-17lj

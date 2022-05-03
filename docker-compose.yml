@@ -1,0 +1,81 @@
+# version: "3.8"
+# services:
+#   client:
+#     build: 
+#       context: client
+#       dockerfile: Dockerfile
+#     restart: unless-stopped
+#     stdin_open: true
+#     tty: true
+#     # ports:
+#     #   - "3000:3000"
+#     volumes:
+#       - ./client:/app
+#     environment:
+#       - IS_DOCKER=Yes
+#   auth:
+#     build:
+#       context: auth
+#       dockerfile: Dockerfile
+#     restart: unless-stopped
+#     stdin_open: true
+#     tty: true
+#     volumes:
+#       - ./:/usr/src/app
+#     # ports:
+#     #   - "5000:5000"
+#     environment:
+#       - IS_DOCKER=Yes
+#   # resumeapi:
+#   #   build:
+#   #     context: resumeapi
+#   #     dockerfile: Dockerfile
+#   #   restart: unless-stopped
+#   #   stdin_open: true
+#   #   tty: true
+#   #   volumes: 
+#   #     - ./resumeapi:/usr/src/app
+#   #   environment:
+#   #     - IS_DOCKER=Yes
+#   profile_api:
+#     build:
+#       context: profile_api
+#       dockerfile: Dockerfile
+#     stdin_open: true
+#     tty: true
+#     restart: unless-stopped
+#     environment:
+#       - IS_DOCKER=Yes
+#   nginx:
+#     image: nginx:alpine
+#     stdin_open: true
+#     tty: true
+#     ports:
+#       - "80:80"
+#     volumes:
+#       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+#     restart: unless-stopped
+#     depends_on:
+#       - client
+#       - auth
+#       - profile_api
+
+version: "3.8"
+services:
+    nginx2:
+        image: timothynguyen/nginx2:latest
+        restart: always
+        build:
+            context: nginx2
+            dockerfile: Dockerfile
+        depends_on:
+            - resumeapi
+        ports:
+            - "80:80"
+    resumeapi:
+        image: timothynguyen/resumeapi:latest
+        build:
+            context: resumeapi
+            dockerfile: Dockerfile
+        env_file:
+            - ./resumeapi/.env
